@@ -83,6 +83,7 @@ function App() {
         })
       })
       if (request){
+        console.log(request)
         setMyGroup((prevUsers) => {
           const newUser = [...prevUsers, request.data.person]
           return newUser

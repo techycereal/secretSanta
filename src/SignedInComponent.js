@@ -1,14 +1,35 @@
 import './App.css';
 import axios from 'axios'
-import { useState } from 'react' 
+import { useEffect, useState } from 'react' 
 import ListGroups from './ListGroups'
 function SignedInComponent({user, myGroup, signedIn, errorMessage, adminSignIn, groupCode, addPerson, isAdmin, deletePerson, changeName, changeAdminCode, DeleteGroups}){
     const [showModal, setShowModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
+    const [didRandom, setDidRandom] = useState(false)
+    
+    const [giftFor, setGiftFor] = useState('')
+    useEffect(() => {
+        const getPairs = async () => {
+          if (user['person']){
+            const url = 'http://localhost:5000/getpairs/' + user['person'] + '/' + groupCode
+            const request = await axios.get(url);
+            console.log(request.data)
+            if (request.data){
+              setGiftFor(request.data[0]['Person'])
+            }
+          }
+        }
+        getPairs()
+    }, [user['person']])
+    console.log(myGroup)
     async function Randomize(){
         const url = 'http://localhost:5000/random/' + groupCode
         const request = await axios.get(url);
-        console.log(request)
+        if (request){
+          setDidRandom(true)
+          setShowModal(false)
+        }
+        setDidRandom(false)
       }
     
       const toggleModal = () => { 
@@ -52,7 +73,7 @@ function SignedInComponent({user, myGroup, signedIn, errorMessage, adminSignIn, 
             )}
               </div>
             <div>
-              {showModal && (
+              {showModal && didRandom === false && (
                 <div className="modal">
                     <div className="modal-content">
                         <span className="close-button" onClick={toggleModal}>&times;</span>
@@ -63,7 +84,7 @@ function SignedInComponent({user, myGroup, signedIn, errorMessage, adminSignIn, 
                 </div>
             )}
               </div>
-            <ListGroups isAdmin={isAdmin} myGroup={myGroup} user={user} deletePerson={deletePerson}/>
+            <ListGroups isAdmin={isAdmin} myGroup={myGroup} user={user} deletePerson={deletePerson} giftFor={giftFor} groupCode={groupCode}/>
             </>
             }
             

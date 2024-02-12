@@ -1,7 +1,19 @@
-import { useState } from 'react' 
-function ListGroups({isAdmin, myGroup, user, deletePerson}){
+import { useEffect, useState } from 'react' 
+import axios from 'axios'
+function ListGroups({isAdmin, myGroup, user, deletePerson, giftFor, groupCode}){
     const [showModal, setShowModal] = useState(false);
     const [deletedUser, setDeletedUser] = useState(null)
+    const [pairs, setPairs] = useState([])
+    useEffect(() => {
+        const getAllPairs = async () => {
+            if (groupCode){
+              const url = 'http://localhost:5000/getallpairs/' + groupCode
+              const request = await axios.get(url);
+              setPairs(request.data)
+            }
+          }
+        getAllPairs()
+    }, [groupCode])
     const toggleModal = () => {
         console.log(showModal)
           setShowModal(!showModal);
@@ -20,45 +32,60 @@ function ListGroups({isAdmin, myGroup, user, deletePerson}){
                 </div>
             )}
               </div>
-            <div style={{
-                marginTop: "7%",
-                backgroundColor: '#f2f2f2',
-                width: '200px',
-                height: '100vh',
-                position: 'fixed',
-                left: '0',
-                top: '0',
-                overflowY: 'auto',
-                padding: '20px',
-                boxShadow: '2px 0 5px rgba(0,0,0,0.2)' 
-            }}>
-                {console.log(myGroup)}
-                <p>Group Members</p>
-                {myGroup.map((people) => (
-                    <div key={people.Person}>
-                        <p>{people.Person} {isAdmin && <span onClick={() => [toggleModal(), setDeletedUser(people)]} style={{cursor: 'pointer', color: 'red'}}>X</span>}</p>
-                    </div>
-                ))}
-                {Object.keys(user).length > 1 && 
-                    <>
-                        <div>
-                            <hr/>
-                            {console.log()}
-                            <p>{user['friend'][0]['Person']}'s List</p>
-                            {user['friend'].map((lists) => (
-                                <p key={lists['item']}>{lists['item']}</p>
-                            ))}
-                        </div>
-                        <div>
-                            <hr/>
-                            <p>My List</p>
-                            {user['myself'].map((lists) => (
-                                <p key={lists['item']}>{lists['item']}</p>
-                            ))}
-                        </div>
-                    </>
-                }
+              <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    height: 'calc(100vh - 50px - 120px)', // Adjust height to account for the banner
+    position: 'fixed',
+    left: '0',
+    top: '150px', // Start the flexbox container below the banner
+    width: '200px',
+    backgroundColor: '#f2f2f2',
+    padding: '20px',
+    boxShadow: '2px 0 5px rgba(0,0,0,0.2)',
+    overflowY: 'auto',
+}}>
+    <div> {/* Flex item for all content except the last <p> */}
+        <p>Group Members</p>
+        {myGroup.map((people) => (
+            <div key={people.Person}>
+                <p>{people.Person} {isAdmin && <span onClick={() => [toggleModal(), setDeletedUser(people)]} style={{cursor: 'pointer', color: 'red'}}>X</span>}</p>
             </div>
+        ))}
+        {Object.keys(user).length > 1 && 
+            <>
+                <div style={{marginTop: "50px"}}>
+                    {Object.keys(user['friend']).length >= 1 && <div>
+                    <h4>{user['friend'][0]['Person']}'s List</h4>
+                    {user['friend'].map((lists) => (
+                        <li key={lists['item']}>{lists['item']}</li>
+                    ))}
+                        </div>}
+                    
+                </div>
+                <div style={{marginTop: "50px"}}>
+                    <h4>My List</h4>
+                    {user['myself'].map((lists) => (
+                        <li key={lists['item']}>{lists['item']}</li>
+                    ))}
+                </div>
+            </>
+        }
+        {isAdmin && 
+        <div style={{marginTop: "70px"}}>
+            <h4>Gift Partners</h4>
+            {Object.keys(pairs).map((people) => (
+            <div>
+                <p>{pairs[people]['PersonName1']}: {pairs[people]['PersonName2']}</p>
+            </div>
+            ))}
+        </div>
+        }
+    </div>
+    {giftFor && <p>You will get a gift for: {giftFor}</p>} {/* This will be pushed to the bottom */}
+</div>
+
         </div>
     );
 }
